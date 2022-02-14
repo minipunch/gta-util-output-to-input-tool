@@ -26,6 +26,9 @@ fs.readdirSync(inputFolder).forEach(fileName => {
     if (fileName.includes(".ydd")) {
         let fileNameSplit = fileName.split("^")
         let majorFolder = fileNameSplit[0]
+        if (majorFolder.includes("_p")) { // skip props in this loop
+            return
+        }
         if (!fs.existsSync(majorFolder)) {
             fs.mkdirSync(majorFolder, {recursive: true})
         }
@@ -54,6 +57,9 @@ fs.readdirSync(inputFolder).forEach(fileName => {
     if (fileName.includes(".ytd")) {
         let fileNameSplit = fileName.split("^")
         let majorFolder = fileNameSplit[0]
+        if (majorFolder.includes("_p")) { // skip props in this loop
+            return
+        }
         let minorFolder = fileNameSplit[1].split("_")[0]
         let modelNum = fileNameSplit[1].split("_")[2]
         let targetFolderNum = modelNumberToFolderNumber[modelNum]
@@ -64,5 +70,35 @@ fs.readdirSync(inputFolder).forEach(fileName => {
         }
         count[majorFolder][minorFolder].componentTextures[targetFolderNum] = count[majorFolder][minorFolder].componentTextures[targetFolderNum] ? count[majorFolder][minorFolder].componentTextures[targetFolderNum] + 1 : 1
         fs.copyFileSync(`${inputFolder}/${fileName}`, `${majorFolder}/components/${minorFolder}/${targetFolderNum}/${count[majorFolder][minorFolder].componentTextures[targetFolderNum] - 1}.ytd`)
+    }
+})
+
+modelNumberToFolderNumber = {} // reset for prop models
+
+// PROPS
+fs.readdirSync(inputFolder).forEach(fileName => {
+    if (fileName.includes(".ydd")) {
+        let fileNameSplit = fileName.split("^")
+        let majorFolder = fileNameSplit[0]
+        if (!fs.existsSync(majorFolder)) {
+            fs.mkdirSync(majorFolder, {recursive: true})
+        }
+        let minorFolderAndModelNumber = fileNameSplit[1].split("_")
+        let minorFolder = minorFolderAndModelNumber[1]
+        if (!fs.existsSync(`${majorFolder}/props/${minorFolder}`)) {
+            fs.mkdirSync(`${majorFolder}/props/${minorFolder}`, {recursive: true})
+        }
+        if (!count[majorFolder]) {
+            count[majorFolder] = {
+                components: {}
+            }
+        }
+        count[majorFolder].components[minorFolder] = count[majorFolder].components[minorFolder] ? count[majorFolder].components[minorFolder] + 1 : 1
+        fs.copyFileSync(`${inputFolder}/${fileName}`, `${majorFolder}/props/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}.ydd`)
+        if (!fs.existsSync(`${majorFolder}/props/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}`)) {
+            fs.mkdirSync(`${majorFolder}/props/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}`, {recursive: true})
+        }
+        let modelNumber = minorFolderAndModelNumber[3]
+        modelNumberToFolderNumber[modelNumber] = count[majorFolder].components[minorFolder] - 1
     }
 })
