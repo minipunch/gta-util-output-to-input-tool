@@ -62,7 +62,6 @@ fs.readdirSync(inputFolder).forEach(fileName => {
                 componentTextures: {}
             }
         }
-        // todo: add minor folder to below count, as currently .ytds are not being named properly
         count[majorFolder][minorFolder].componentTextures[targetFolderNum] = count[majorFolder][minorFolder].componentTextures[targetFolderNum] ? count[majorFolder][minorFolder].componentTextures[targetFolderNum] + 1 : 1
         fs.copyFileSync(`${inputFolder}/${fileName}`, `${majorFolder}/components/${minorFolder}/${targetFolderNum}/${count[majorFolder][minorFolder].componentTextures[targetFolderNum] - 1}.ytd`)
     }
