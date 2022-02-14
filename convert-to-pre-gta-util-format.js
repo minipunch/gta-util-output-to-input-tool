@@ -15,11 +15,15 @@ const fs = require('fs')
     // the major folder is suffixed with "_p"
     // the minor folder is prefixed with "p_"
 
+const DEBUG_MODE = false
+
 let inputFolder = process.argv[2];
 let outputDestination = process.argv[3];
 
 let count = {}
 let modelNumberToFolderNumber = {}
+
+console.log("starting!")
 
 // COMPONENT MODELS:
 fs.readdirSync(inputFolder).forEach(fileName => {
@@ -48,7 +52,15 @@ fs.readdirSync(inputFolder).forEach(fileName => {
             fs.mkdirSync(`${majorFolder}/components/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}`, {recursive: true})
         }
         let modelNumber = minorFolderAndModelNumber[1]
-        modelNumberToFolderNumber[modelNumber] = count[majorFolder].components[minorFolder] - 1
+        if (!modelNumberToFolderNumber[majorFolder]) {
+            modelNumberToFolderNumber[majorFolder] = {}
+        }
+        if (!modelNumberToFolderNumber[majorFolder][minorFolder]) {
+            modelNumberToFolderNumber[majorFolder][minorFolder] = {}
+        }
+        modelNumberToFolderNumber[majorFolder][minorFolder][modelNumber] = count[majorFolder].components[minorFolder] - 1
+        if (DEBUG_MODE)
+            console.log(`(${fileName}) added model number ${modelNumber} target folder: ${modelNumberToFolderNumber[majorFolder][minorFolder][modelNumber]}`)
     }
 });
 
@@ -62,7 +74,7 @@ fs.readdirSync(inputFolder).forEach(fileName => {
         }
         let minorFolder = fileNameSplit[1].split("_")[0]
         let modelNum = fileNameSplit[1].split("_")[2]
-        let targetFolderNum = modelNumberToFolderNumber[modelNum]
+        let targetFolderNum = modelNumberToFolderNumber[majorFolder][minorFolder][modelNum]
         if (!count[majorFolder][minorFolder]) {
             count[majorFolder][minorFolder] = {
                 componentTextures: {}
@@ -70,6 +82,12 @@ fs.readdirSync(inputFolder).forEach(fileName => {
         }
         count[majorFolder][minorFolder].componentTextures[targetFolderNum] = count[majorFolder][minorFolder].componentTextures[targetFolderNum] ? count[majorFolder][minorFolder].componentTextures[targetFolderNum] + 1 : 1
         fs.copyFileSync(`${inputFolder}/${fileName}`, `${majorFolder}/components/${minorFolder}/${targetFolderNum}/${count[majorFolder][minorFolder].componentTextures[targetFolderNum] - 1}.ytd`)
+        
+        // temp for debugging:
+        if (DEBUG_MODE) {
+            if (fileName.includes("berd"))
+                console.log(`copied ${inputFolder}/${fileName} -> ${majorFolder}/components/${minorFolder}/${targetFolderNum}/${count[majorFolder][minorFolder].componentTextures[targetFolderNum] - 1}.ytd`)
+        }
     }
 })
 
@@ -101,8 +119,14 @@ fs.readdirSync(inputFolder).forEach(fileName => {
         if (!fs.existsSync(`${majorFolder}/props/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}`)) {
             fs.mkdirSync(`${majorFolder}/props/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}`, {recursive: true})
         }
+        if (!modelNumberToFolderNumber[majorFolder]) {
+            modelNumberToFolderNumber[majorFolder] = {}
+        }
+        if (!modelNumberToFolderNumber[majorFolder][minorFolder]) {
+            modelNumberToFolderNumber[majorFolder][minorFolder] = {}
+        }
         let modelNumber = minorFolderAndModelNumber[2].split(".")[0]
-        modelNumberToFolderNumber[modelNumber] = count[majorFolder].components[minorFolder] - 1
+        modelNumberToFolderNumber[majorFolder][minorFolder][modelNumber] = count[majorFolder].components[minorFolder] - 1
     }
 })
 
@@ -116,7 +140,7 @@ fs.readdirSync(inputFolder).forEach(fileName => {
         }
         let minorFolder = fileNameSplit[1].split("_")[1]
         let modelNum = fileNameSplit[1].split("_")[3]
-        let targetFolderNum = modelNumberToFolderNumber[modelNum]
+        let targetFolderNum = modelNumberToFolderNumber[majorFolder][minorFolder][modelNum]
         if (!count[majorFolder][minorFolder]) {
             count[majorFolder][minorFolder] = {
                 componentTextures: {}
@@ -126,3 +150,5 @@ fs.readdirSync(inputFolder).forEach(fileName => {
         fs.copyFileSync(`${inputFolder}/${fileName}`, `${majorFolder}/props/${minorFolder}/${targetFolderNum}/${count[majorFolder][minorFolder].componentTextures[targetFolderNum] - 1}.ytd`)
     }
 })
+
+console.log("done!")
