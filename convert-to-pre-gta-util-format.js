@@ -80,6 +80,9 @@ fs.readdirSync(inputFolder).forEach(fileName => {
     if (fileName.includes(".ydd")) {
         let fileNameSplit = fileName.split("^")
         let majorFolder = fileNameSplit[0]
+        if (!majorFolder.includes("_p")) { // only props in this loop
+            return
+        }
         if (!fs.existsSync(majorFolder)) {
             fs.mkdirSync(majorFolder, {recursive: true})
         }
@@ -98,7 +101,28 @@ fs.readdirSync(inputFolder).forEach(fileName => {
         if (!fs.existsSync(`${majorFolder}/props/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}`)) {
             fs.mkdirSync(`${majorFolder}/props/${minorFolder}/${count[majorFolder].components[minorFolder] - 1}`, {recursive: true})
         }
-        let modelNumber = minorFolderAndModelNumber[3]
+        let modelNumber = minorFolderAndModelNumber[2].split(".")[0]
         modelNumberToFolderNumber[modelNumber] = count[majorFolder].components[minorFolder] - 1
+    }
+})
+
+// PROP TEXTURES
+fs.readdirSync(inputFolder).forEach(fileName => {
+    if (fileName.includes(".ytd")) {
+        let fileNameSplit = fileName.split("^")
+        let majorFolder = fileNameSplit[0]
+        if (!majorFolder.includes("_p")) { // only props in this loop
+            return
+        }
+        let minorFolder = fileNameSplit[1].split("_")[1]
+        let modelNum = fileNameSplit[1].split("_")[3]
+        let targetFolderNum = modelNumberToFolderNumber[modelNum]
+        if (!count[majorFolder][minorFolder]) {
+            count[majorFolder][minorFolder] = {
+                componentTextures: {}
+            }
+        }
+        count[majorFolder][minorFolder].componentTextures[targetFolderNum] = count[majorFolder][minorFolder].componentTextures[targetFolderNum] ? count[majorFolder][minorFolder].componentTextures[targetFolderNum] + 1 : 1
+        fs.copyFileSync(`${inputFolder}/${fileName}`, `${majorFolder}/props/${minorFolder}/${targetFolderNum}/${count[majorFolder][minorFolder].componentTextures[targetFolderNum] - 1}.ytd`)
     }
 })
